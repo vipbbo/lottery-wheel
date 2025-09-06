@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NB大礼包抽奖 - 惊喜无限</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: radial-gradient(circle at 50% 50%, #7B68EE, #4169E1);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: headerSlide 1s ease-out;
+        }
+
+        @keyframes headerSlide {
+            0% { transform: translateY(-50px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .title {
+            font-size: 3.5rem;
+            color: #fff;
+            margin-bottom: 15px;
+            text-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            background: linear-gradient(45deg, #FF1493, #FF69B4, #FFB6C1);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 5s ease-in-out infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 3px 10px rgba(0,0,0,0.3);
+        }
+
+        .gift-area {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            perspective: 1000px;
+            animation: giftAreaSlide 1s ease-out 0.3s both;
+        }
+
+        @keyframes giftAreaSlide {
+            0% { transform: translateY(50px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .gift-box {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 1s ease;
+        }
+
+        .gift-box.opening {
+            transform: rotateX(-20deg);
+        }
+
+        .gift-base {
+            position: absolute;
+            width: 100%;
+            height: 80%;
+            background: linear-gradient(135deg, #DC143C, #FF6B6B, #FF1493);
+            border-radius: 30px;
+            box-shadow: 
+                0 30px 50px rgba(220, 20, 60, 0.4),
+                inset 0 2px 0 rgba(255,255,255,0.3),
+                inset 0 -2px 0 rgba(0,0,0,0.2);
+            background-size: 200% 200%;
+            animation: baseShimmer 4s ease-in-out infinite;
+        }
+
+        @keyframes baseShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .gift-lid {
+            position: absolute;
+            width: 100%;
+            height: 30%;
+            background: linear-gradient(135deg, #FFB6C1, #FF69B4, #FF1493);
+            border-radius: 30px 30px 15px 15px;
+            top: -10%;
+            transform-origin: bottom;
+            transition: transform 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 
+                0 -10px 30px rgba(255, 69, 0, 0.4),
+                inset 0 2px 0 rgba(255,255,255,0.4),
+                inset 0 -1px 0 rgba(0,0,0,0.2);
+        }
+
+        .gift-lid.opening {
+            transform: rotateX(-120deg);
+        }
+
+        .gift-ribbon {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 60px;
+            background: linear-gradient(45deg, #FF1493, #FF69B4);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            animation: ribbonFloat 2.5s ease-in-out infinite;
+        }
+
+        @keyframes ribbonFloat {
+            0%, 100% { transform: translateX(-50%) translateY(0px); }
+            50% { transform: translateX(-50%) translateY(-8px); }
+        }
+
+        .gift-logo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 150px;
+            height: 150px;
+            background-image: url('https://via.placeholder.com/150/FF1493/FFFFFF?text=NB');
+            background-size: contain;
+            background-repeat: no-repeat;
+            animation: logoFloat 2s ease-in-out infinite;
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translate(-50%, -48%); }
+            50% { transform: translate(-50%, -52%); }
+        }
+
+        .prize-display {
+            position: absolute;
+            top: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #FFB6C1, #FF69B4);
+            padding: 20px 30px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(255, 69, 0, 0.4);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.8s ease;
+        }
+
+        .prize-display.active {
+            opacity: 1;
+            animation: prizeFloat 2s ease-in-out infinite;
+        }
+
+        @keyframes prizeFloat {
+            0%, 100% { transform: translateX(-50%) translateY(0px) scale(1); }
+            50% { transform: translateX(-50%) translateY(-20px) scale(1.1); }
+        }
+
+        .prize-emoji {
+            font-size: 4rem;
+            margin-bottom: 10px;
+            animation: emojiSpin 1s ease-in-out;
+        }
+
+        @keyframes emojiSpin {
+            0% { transform: scale(0) rotate(-180deg); }
+            50% { transform: scale(1.3) rotate(0deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        .prize-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .prize-subtitle {
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .btn-area {
+            margin-top: 40px;
+            animation: btnSlide 1s ease-out 0.6s both;
+        }
+
+        @keyframes btnSlide {
+            0% { transform: translateY(50px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .btn {
+            padding: 18px 35px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.6s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #FF1493, #FF69B4);
+            color: white;
+            box-shadow: 0 10px 25px rgba(255, 20, 147, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(255, 20, 147, 0.6);
+        }
+
+        .btn-primary:disabled {
+            background: linear-gradient(45deg, #ccc, #999);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #FF69B4;
+            animation: confettiFloat 3s linear infinite;
+            z-index: 999;
+        }
+
+        @keyframes confettiFloat {
+            0% { 
+                transform: translateY(-100vh) rotate(0deg) scale(1); 
+                opacity: 1; 
+            }
+            100% { 
+                transform: translateY(100vh) rotate(720deg) scale(0); 
+                opacity: 0; 
+            }
+        }
+
+        .stardust {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: radial-gradient(circle, #FF69B4, transparent);
+            border-radius: 50%;
+            animation: stardustFloat 5s ease-in-out infinite;
+            z-index: 998;
+        }
+
+        @keyframes stardustFloat {
+            0%, 100% { 
+                transform: translateY(0px) scale(1); 
+                opacity: 0.6; 
+            }
+            50% { 
+                transform: translateY(-50px) scale(1.2); 
+                opacity: 1; 
+            }
+        }
+
+        .petal {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(45deg, #FF69B4, #FF1493);
+            border-radius: 50% 20% 50% 20%;
+            animation: petalFloat 4s linear infinite;
+            z-index: 997;
+        }
+
+        @keyframes petalFloat {
+            0% { 
+                transform: translateY(-100vh) rotate(0deg) scale(1); 
+                opacity: 1; 
+            }
+            100% { 
+                transform: translateY(100vh) rotate(720deg) scale(0); 
+                opacity: 0; 
+            }
+        }
+
+        @media (max-width: 768px) {
+            .title { font-size: 2.5rem; }
+            .subtitle { font-size: 1.2rem; }
+            .gift-area { width: 300px; height: 300px; }
+            .prize-display { top: -60px; }
+            .prize-emoji { font-size: 3rem; }
+            .prize-name { font-size: 1.5rem; }
+            .prize-subtitle { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">NB 大礼包抽奖</h1>
+            <p class="subtitle">点击开启,等待惊喜发生!</p>
+        </header>
+
+        <div class="gift-area" id="giftArea">
+            <div class="gift-box" id="giftBox">
+                <div class="gift-base"></div>
+                <div class="gift-lid" id="giftLid"></div>
+                <div class="gift-ribbon"></div>
+                <div class="gift-logo"></div>
+            </div>
+
+            <div class="prize-display" id="prizeDisplay">
+                <div class="prize-emoji">🎉</div>
+                <div class="prize-name">NB 限量运动鞋</div>
+                <div class="prize-subtitle">恭喜获得</div>
+            </div>
+        </div>
+
+        <div class="btn-area">
+            <button class="btn btn-primary" id="openGift">
+                开启宝箱
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // NB大礼包抽奖互动场景
+        class NBGiftScene {
+            constructor() {
+                this.giftBox = document.getElementById('giftBox');
+                this.giftLid = document.getElementById('giftLid');
+                this.prizeDisplay = document.getElementById('prizeDisplay');
+                this.openGiftButton = document.getElementById('openGift');
+
+                this.bindEvents();
+                this.createConfetti();
+                this.createStardust();
+                this.createPetals();
+            }
+
+            bindEvents() {
+                this.openGiftButton.addEventListener('click', () => this.openGiftBox());
+            }
+
+            openGiftBox() {
+                if (this.giftBox.classList.contains('opening')) return;
+
+                this.giftBox.classList.add('opening');
+                this.giftLid.classList.add('opening');
+
+                setTimeout(() => {
+                    this.prizeDisplay.classList.add('active');
+                    this.playAnimation();
+                }, 1000);
+
+                this.openGiftButton.disabled = true;
+            }
+
+            playAnimation() {
+                // 奖品展示动画
+                this.prizeDisplay.style.transform = 'translateX(-50%) translateY(-20px) scale(1.1)';
+                this.prizeDisplay.style.opacity = '1';
+
+                // 飘落特效
+                this.createConfetti();
+                this.createStardust();
+                this.createPetals();
+
+                // 禁用按钮 3 秒后启用
+                setTimeout(() => {
+                    this.openGiftButton.disabled = false;
+                    this.prizeDisplay.style.transform = 'translateX(-50%) translateY(0px) scale(1)';
+                    this.prizeDisplay.style.opacity = '0';
+                }, 3000);
+            }
+
+            createConfetti() {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                document.body.appendChild(confetti);
+
+                setTimeout(() => {
+                    confetti.remove();
+                }, 3000);
+            }
+
+            createStardust() {
+                const stardust = document.createElement('div');
+                stardust.className = 'stardust';
+                stardust.style.left = Math.random() * 100 + '%';
+                document.body.appendChild(stardust);
+
+                setTimeout(() => {
+                    stardust.remove();
+                }, 5000);
+            }
+
+            createPetals() {
+                const petal = document.createElement('div');
+                petal.className = 'petal';
+                petal.style.left = Math.random() * 100 + '%';
+                document.body.appendChild(petal);
+
+                setTimeout(() => {
+                    petal.remove();
+                }, 4000);
+            }
+        }
+
+        new NBGiftScene();
+    </script>
+</body>
+</html>
