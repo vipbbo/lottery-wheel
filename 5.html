@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #fd3300 0%, #f35645 50%, #c73e1d 100%);
+            background: linear-gradient(135deg, #ff0000 0%, #ff0000 50%, #c73e1d 100%);
             min-height: 100vh;
             overflow-x: hidden;
             position: relative;
@@ -88,7 +88,7 @@
             width: 120px;
             height: 60px;
             margin: 0 auto 20px;
-            background: linear-gradient(45deg, #1e3c72, #2a5298);
+            background: linear-gradient(45deg, #3064c5, #3a82ff);
             border-radius: 10px;
             display: flex;
             align-items: center;
@@ -111,7 +111,7 @@
             color: #fff;
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            background: linear-gradient(45deg, #1e3c72, #ffffff, #2a5298);
+            background: linear-gradient(45deg, #508dff, #ffffff, #619bff);
             background-size: 400% 400%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -1048,32 +1048,36 @@
         }
 
         // New Balance 主题转盘动画
-        spinNBWheel() {
+      spinNBWheel() {
             return new Promise(resolve => {
                 const wheel = document.getElementById('lotteryWheel');
-                
-                // 添加New Balance旋转特效
                 wheel.classList.add('wheel-spinning');
                 
-                // 随机选择一个奖品
                 const availablePrizes = this.getAvailablePrizes();
                 const selectedPrizeKey = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
                 const targetAngle = this.prizes[selectedPrizeKey].angle;
                 
-                // 计算旋转角度 (4-7圈 + 目标角度)
                 const spins = 4 + Math.random() * 3;
-                // 修正角度计算，确保指针指向正确的扇形
-                const finalAngle = (spins * 360) + (360 - targetAngle);
+                const finalAngle = (spins * 360) + targetAngle;
                 
                 wheel.style.transform = `rotate(${finalAngle}deg)`;
                 
                 setTimeout(() => {
                     wheel.classList.remove('wheel-spinning');
                     resolve(selectedPrizeKey);
+                    
+                    // 延迟2秒后重置到初始位置
+                    setTimeout(() => {
+                        wheel.style.transition = 'transform 1s ease-out';
+                        wheel.style.transform = 'rotate(0deg)';
+                        
+                        setTimeout(() => {
+                            wheel.style.transition = '';
+                        }, 1000);
+                    }, 2000);
                 }, 4000);
             });
         }
-
         // 抽奖逻辑
         drawPrize(participantNumber, selectedPrize) {
             return {
@@ -1322,7 +1326,7 @@
     });
 
     // 阻止右键菜单（可选）
-    document.addEventListener('contextmenu', e => e.preventDefault());
+    // document.addEventListener('contextmenu', e => e.preventDefault());
 </script>
 </body>
 </html>
