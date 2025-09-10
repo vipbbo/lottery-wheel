@@ -766,6 +766,123 @@
             .winner-prize { font-size: 2rem; }
             .nb-logo { width: 100px; height: 50px; font-size: 1.5rem; }
         }
+
+        /* 导出对话框样式 */
+        .export-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+
+        .export-dialog-content {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border-radius: 20px;
+            padding: 30px;
+            color: white;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+            animation: exportDialogAppear 0.5s ease-out;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+
+        @keyframes exportDialogAppear {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .export-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 15px;
+        }
+
+        .export-header h3 {
+            margin: 0;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .close-export {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-export:hover {
+            opacity: 1;
+        }
+
+        .export-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .export-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 20px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .export-preview {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .export-preview h4 {
+            margin: 0 0 15px 0;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .preview-content p {
+            margin: 8px 0;
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .export-options {
+                flex-direction: column;
+            }
+            
+            .export-btn {
+                width: 100%;
+            }
+            
+            .export-dialog-content {
+                margin: 20px;
+                padding: 25px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -901,6 +1018,9 @@
         <!-- New Balance 主题抽奖历史 -->
         <div class="history-panel">
             <h3 style="color: #1e3c72; margin-bottom: 20px;">📜 New Balance 抽奖历史</h3>
+            <button class="btn btn-secondary" id="exportHistory" style="padding: 10px 20px; font-size: 0.9rem;">
+                📥 导出历史
+            </button>
             <div class="history-list" id="historyList">
                 <div style="text-align: center; color: rgba(255,255,255,0.6);">
                     暂无抽奖记录
@@ -954,13 +1074,194 @@
             document.getElementById('resetSystem').addEventListener('click', () => this.resetSystem());
             document.getElementById('audioToggle').addEventListener('click', () => this.toggleAudio());
             document.getElementById('closeWinner').addEventListener('click', () => this.closeWinnerAnimation());
-            
+            document.getElementById('exportHistory').addEventListener('click', () => this.exportHistory()); // 导出
+
             // 回车键快速抽奖
             document.getElementById('participantNumber').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') this.startLottery();
             });
         }
 
+        // 添加导出历史记录的方法
+        exportHistory() {
+            if (this.lotteryHistory.length === 0) {
+                this.showMessage('暂无抽奖历史记录可导出！', 'error');
+                return;
+            }
+
+            // 创建导出数据
+            const exportData = this.prepareExportData();
+            
+            // 提供多种导出格式选择
+            this.showExportDialog(exportData);
+        }
+        // 准备导出数据
+        prepareExportData() {
+            return {
+                exportTime: new Date().toLocaleString('zh-CN'),
+                systemInfo: {
+                    totalDrawn: this.usedNumbers.size,
+                    remainingPrizes: this.getTotalPrizes(),
+                    prizePool: {
+                        shoes: this.prizes.shoes.count,
+                        bags: this.prizes.bags.count,
+                        clothes: this.prizes.clothes.count,
+                        socks: this.prizes.socks.count
+                    }
+                },
+                history: this.lotteryHistory.map((record, index) => ({
+                    序号: index + 1,
+                    编号: record.participantNumber,
+                    奖品: this.prizes[record.prize].name,
+                    时间: record.timestamp.toLocaleString('zh-CN')
+                }))
+            };
+        }
+
+        // 显示导出选择对话框
+        // 显示导出选择对话框
+    // 显示导出选择对话框
+        showExportDialog(exportData) {
+            const dialog = document.createElement('div');
+            dialog.className = 'export-dialog';
+            dialog.innerHTML = `
+                <div class="export-dialog-content">
+                    <div class="export-header">
+                        <h3>📥 导出New Balance抽奖历史</h3>
+                        <button class="close-export" data-action="close">×</button>
+                    </div>
+                    <div class="export-options">
+                        <button class="btn btn-primary export-btn" data-action="json">
+                            📄 导出为JSON
+                        </button>
+                        <button class="btn btn-primary export-btn" data-action="csv">
+                            📊 导出为CSV
+                        </button>
+                        <button class="btn btn-primary export-btn" data-action="txt">
+                            📝 导出为TXT
+                        </button>
+                    </div>
+                    <div class="export-preview">
+                        <h4>数据预览：</h4>
+                        <div class="preview-content">
+                            <p><strong>导出时间：</strong>${exportData.exportTime}</p>
+                            <p><strong>抽奖记录：</strong>${exportData.history.length} 条</p>
+                            <p><strong>剩余奖品：</strong>${exportData.systemInfo.remainingPrizes} 个</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 添加事件监听器
+            dialog.addEventListener('click', (e) => {
+                const action = e.target.getAttribute('data-action');
+                if (action) {
+                    switch(action) {
+                        case 'close':
+                            this.closeExportDialog();
+                            break;
+                        case 'json':
+                            this.exportAsJSON();
+                            break;
+                        case 'csv':
+                            this.exportAsCSV();
+                            break;
+                        case 'txt':
+                            this.exportAsTXT();
+                            break;
+                    }
+                }
+            });
+            
+            document.body.appendChild(dialog);
+            this.currentExportData = exportData;
+        }
+        // 导出为JSON格式
+        exportAsJSON() {
+            const jsonData = JSON.stringify(this.currentExportData, null, 2);
+            this.downloadFile(jsonData, 'nb-lottery-history.json', 'application/json');
+            this.closeExportDialog();
+        }
+
+        // 导出为CSV格式
+        exportAsCSV() {
+            let csvContent = '\uFEFF'; // BOM for UTF-8
+            csvContent += 'New Balance 抽奖历史记录\n';
+            csvContent += `导出时间,${this.currentExportData.exportTime}\n`;
+            csvContent += `总抽奖次数,${this.currentExportData.systemInfo.totalDrawn}\n`;
+            csvContent += `剩余奖品数,${this.currentExportData.systemInfo.remainingPrizes}\n\n`;
+            
+            csvContent += '序号,编号,奖品,时间\n';
+            
+            this.currentExportData.history.forEach(record => {
+                csvContent += `${record.序号},${record.编号},"${record.奖品}",${record.时间}\n`;
+            });
+            
+            this.downloadFile(csvContent, 'nb-lottery-history.csv', 'text/csv;charset=utf-8');
+            this.closeExportDialog();
+        }
+
+        // 导出为TXT格式
+        exportAsTXT() {
+            let txtContent = '========================================\n';
+            txtContent += '       New Balance 品牌大抽奖\n';
+            txtContent += '         抽奖历史记录报告\n';
+            txtContent += '========================================\n\n';
+            
+            txtContent += `导出时间: ${this.currentExportData.exportTime}\n`;
+            txtContent += `总抽奖次数: ${this.currentExportData.systemInfo.totalDrawn}\n`;
+            txtContent += `剩余奖品总数: ${this.currentExportData.systemInfo.remainingPrizes}\n\n`;
+            
+            txtContent += '当前奖品池状态:\n';
+            txtContent += `👟 NB 经典跑鞋: ${this.currentExportData.systemInfo.prizePool.shoes}\n`;
+            txtContent += `🎒 NB 运动背包: ${this.currentExportData.systemInfo.prizePool.bags}\n`;
+            txtContent += `👕 NB 运动T恤: ${this.currentExportData.systemInfo.prizePool.clothes}\n`;
+            txtContent += `🧦 NB 运动袜: ${this.currentExportData.systemInfo.prizePool.socks}\n\n`;
+            
+            txtContent += '========================================\n';
+            txtContent += '           抽奖历史记录\n';
+            txtContent += '========================================\n\n';
+            
+            this.currentExportData.history.forEach(record => {
+                txtContent += `${record.序号}. 编号 ${record.编号} - ${record.奖品}\n`;
+                txtContent += `   时间: ${record.时间}\n\n`;
+            });
+            
+            txtContent += '========================================\n';
+            txtContent += '     Make Excellent Happen - New Balance\n';
+            txtContent += '========================================\n';
+            
+            this.downloadFile(txtContent, 'nb-lottery-history.txt', 'text/plain;charset=utf-8');
+            this.closeExportDialog();
+        }
+
+        // 下载文件
+        downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = window.URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.style.display = 'none';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            window.URL.revokeObjectURL(url);
+            
+            this.showMessage(`✅ ${filename} 导出成功！`, 'info');
+        }
+
+        // 关闭导出对话框
+        closeExportDialog() {
+            const dialog = document.querySelector('.export-dialog');
+            if (dialog) {
+                dialog.remove();
+            }
+            this.currentExportData = null;
+        }
         // 创建粒子动画
         createParticles() {
             const particlesContainer = document.getElementById('particles');
@@ -1048,7 +1349,7 @@
         }
 
         // New Balance 主题转盘动画
-     spinNBWheel() {
+        spinNBWheel() {
             return new Promise(resolve => {
                 const wheel = document.getElementById('lotteryWheel');
                 wheel.classList.add('wheel-spinning');
@@ -1344,7 +1645,7 @@
     });
 
     // 阻止右键菜单（可选）
-    // document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('contextmenu', e => e.preventDefault());
 </script>
 </body>
 </html>
