@@ -830,16 +830,16 @@
                         <div class="prize-icon">👟</div>
                     </div>
                     <div class="prize-sector">
-                        <div class="prize-text">NB 运动背包</div>
-                        <div class="prize-icon">🎒</div>
+                        <div class="prize-text">NB 运动袜</div>
+                        <div class="prize-icon">🧦</div>
                     </div>
                     <div class="prize-sector">
                         <div class="prize-text">NB 运动T恤</div>
                         <div class="prize-icon">👕</div>
                     </div>
                     <div class="prize-sector">
-                        <div class="prize-text">NB 运动袜</div>
-                        <div class="prize-icon">🧦</div>
+                        <div class="prize-text">NB 运动背包</div>
+                        <div class="prize-icon">🎒</div>
                     </div>
                     <div class="wheel-center">
                         <div class="nb-center-logo">NB</div>
@@ -934,10 +934,10 @@
         initializeSystem() {
             // 修正角度映射，确保转盘与奖品对应正确
             this.prizes = {
-                shoes: { name: '👟 NB 经典跑鞋', count: 20, emoji: '👟', angle: 0 },      // 对应第1个扇形
-                bags: { name: '🎒 NB 运动背包', count: 20, emoji: '🎒', angle: 90 },     // 对应第2个扇形
-                clothes: { name: '👕 NB 运动T恤', count: 30, emoji: '👕', angle: 180 },  // 对应第3个扇形
-                socks: { name: '🧦 NB 运动袜', count: 30, emoji: '🧦', angle: 270 }     // 对应第4个扇形
+                shoes: { name: '👟 NB 经典跑鞋', count: 20, emoji: '👟', angle: 0 , centerAngle: 45, startAngle: 0, endAngle: 90},      // 对应第1个扇形
+                bags: { name: '🎒 NB 运动背包', count: 20, emoji: '🎒', angle: 90, centerAngle: 135, startAngle: 90, endAngle: 180  },     // 对应第2个扇形
+                clothes: { name: '👕 NB 运动T恤', count: 30, emoji: '👕', angle: 180 , centerAngle: 225, startAngle: 180, endAngle: 270  },  // 对应第3个扇形
+                socks: { name: '🧦 NB 运动袜', count: 30, emoji: '🧦', angle: 270, centerAngle: 315 , startAngle: 270, endAngle: 360 }     // 对应第4个扇形
             };
 
             this.usedNumbers = new Set();
@@ -1048,34 +1048,52 @@
         }
 
         // New Balance 主题转盘动画
-      spinNBWheel() {
+     spinNBWheel() {
             return new Promise(resolve => {
                 const wheel = document.getElementById('lotteryWheel');
                 wheel.classList.add('wheel-spinning');
-                
+
+                // 获取可用奖品
                 const availablePrizes = this.getAvailablePrizes();
                 const selectedPrizeKey = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
-                const targetAngle = this.prizes[selectedPrizeKey].angle;
-                
-                const spins = 4 + Math.random() * 3;
-                const finalAngle = (spins * 360) + targetAngle;
-                
-                wheel.style.transform = `rotate(${finalAngle}deg)`;
-                
+
+                // 当前奖品信息
+                const prize = this.prizes[selectedPrizeKey];
+
+                // 计算随机旋转整数圈数
+                const spins = Math.floor(5 + Math.random() * 3); // 5~7圈的整数
+
+                // 修正 baseRotation：将指针对准奖品的中心角度
+                //const baseRotation = (360 - prize.centerAngle + 360) % 360;
+                const baseRotation = prize.centerAngle;
+
+                // 计算最终角度：整数圈数 + 精确对齐目标角度
+                const finalAngle = spins * 360 + baseRotation;
+
+                // 日志调试
+                console.log("Selected Prize:", selectedPrizeKey);
+                console.log("Prize Info:", prize);
+                console.log("Spins:", spins);
+                console.log("Base Rotation:", baseRotation);
+                console.log("Final Angle:", finalAngle.toFixed(2));
+
+                // 设置转盘旋转
+                wheel.style.transform = `rotate(${finalAngle.toFixed(2)}deg)`;
+
                 setTimeout(() => {
                     wheel.classList.remove('wheel-spinning');
                     resolve(selectedPrizeKey);
-                    
+
                     // 延迟2秒后重置到初始位置
                     setTimeout(() => {
                         wheel.style.transition = 'transform 1s ease-out';
                         wheel.style.transform = 'rotate(0deg)';
-                        
+
                         setTimeout(() => {
                             wheel.style.transition = '';
                         }, 1000);
                     }, 2000);
-                }, 2500);
+                }, 5000);
             });
         }
         // 抽奖逻辑
@@ -1330,10 +1348,3 @@
 </script>
 </body>
 </html>
-
-
-<!-- 基于刚刚调整完的代码还是存在以下问题
-1. 当输入编号，点击抽奖时转盘的指针指向的是NB运动T恤，可是弹出的中奖结果却是NB运动背包。
-2.除了第一次点击抽奖，后面按照正常流程输入编号再点击抽奖时，转盘不怎么转动，只是微微动了一下。就抽奖了。我想让他转起来，
-
-请修复这两个问题，并将完整的代码输出。 -->
