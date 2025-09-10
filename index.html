@@ -188,6 +188,17 @@
             box-shadow: 0 5px 15px rgba(30, 60, 114, 0.4);
             border-color: #1e3c72;
         }
+            /* 编号范围显示 */
+        .number-range-info {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(30, 60, 114, 0.2);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
 
         .btn {
             padding: 15px 30px;
@@ -883,6 +894,25 @@
                 padding: 25px;
             }
         }
+.nb-winner-logo {
+    width: 100px;
+    height: 50px;
+    margin: 20px auto;
+    background-image: url('images/image.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    animation: logoFloat 2s ease-in-out infinite;
+    overflow: hidden;
+    border-radius: 10px;
+}
+
+.nb-winner-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+}
     </style>
 </head>
 <body>
@@ -915,7 +945,10 @@
     <div class="container">
         <!-- New Balance 品牌头部 -->
         <header class="header">
-            <div class="nb-logo">NB</div>
+            <!-- <div class="nb-logo">NB</div> -->
+             <div class="nb-winner-logo">
+                <img src="images/images.png" alt="New Balance Logo">
+            </div>
             <h1 class="title">🏃‍♂️ New Balance 品牌大抽奖 👟</h1>
             <p class="subtitle">输入您的编号，赢取New Balance精品好礼！</p>
             <div class="brand-slogan">Make Excellent Happen</div>
@@ -923,9 +956,13 @@
 
         <!-- 控制面板 -->
         <div class="control-panel">
+             <!-- 编号范围显示 -->
+            <div class="number-range-info" id="numberRangeInfo">
+                有效编号范围：A1001 - A1650 (共 650 个编号)
+            </div>
             <div class="input-group">
-                <input type="number" class="input-field" id="participantNumber" 
-                       placeholder="输入编号 " min="1" max="1000000000000000000000000000000000000000000000">
+                <input type="text" class="input-field" id="participantNumber" 
+                       placeholder="输入编号 (例如: A1001)" maxlength="5">
                 <button class="btn btn-primary" id="startLottery">
                     🎲 开始抽奖
                 </button>
@@ -1044,12 +1081,104 @@
     // New Balance 主题抽奖系统核心类
     class NBLotterySystem {
         constructor() {
+             // 定义编号范围配置
+            this.NUMBER_CONFIG = {
+                events: [
+                    { 
+                        name: '女子半程', 
+                        prefix: 'A', 
+                        startNumber: 1001, 
+                        endNumber: 1650, 
+                        totalCount: 650
+                    },
+                    {
+                        name: '男子半程',
+                        prefix: 'B',
+                        startNumber: 2001,
+                        endNumber: 2650,
+                        totalCount: 650
+                    },
+                    {
+                        name: '欢乐跑',
+                        prefix: 'C',
+                        startNumber: 1001,
+                        endNumber: 1800,
+                        totalCount: 800
+                    }
+                ]
+            };
+            this.currentEventIndex = 0; // 当前选中的活动索引
+            this.participantNumber = null;
             this.initializeSystem();
             this.bindEvents();
             this.createParticles();
             this.initializeAudio();
+            this.updateNumberRangeDisplay();
         }
+        // 更新编号范围显示
+        updateNumberRangeDisplay() {
+            const currentEvent = this.NUMBER_CONFIG.events[this.currentEventIndex];
+            const rangeInfo = document.getElementById('numberRangeInfo');
+            rangeInfo.textContent = `有效编号范围：${currentEvent.prefix}${currentEvent.startNumber} - ${currentEvent.prefix}${currentEvent.endNumber} (共 ${currentEvent.totalCount} 个编号)`;
+        }
+// 验证编号格式和范围
+        validateNumberFormat(inputValue) {
+            if (!inputValue) {
+                return { valid: false, message: '请输入编号！' };
+            }
 
+            // 转换为大写并去除空格
+            const normalizedInput = inputValue.toString().toUpperCase().trim();
+
+            // 检查编号类型
+            const eventIndex = this.getEventIndexByPrefix(normalizedInput);
+            if (eventIndex === -1) {
+                return {
+                    valid: false,
+                    message: '编号前缀不正确，请检查输入!'
+                };
+            }
+
+            const currentEvent = this.NUMBER_CONFIG.events[eventIndex];
+            const { prefix, startNumber, endNumber } = currentEvent;
+
+            // 提取数字部分
+            const numberPart = normalizedInput.slice(prefix.length);
+            
+            // 检查数字部分是否为纯数字
+            if (!/^\d+$/.test(numberPart)) {
+                return {
+                    valid: false,
+                    message: `编号格式错误，正确格式如：${prefix}${startNumber}`
+                };
+            }
+
+            const number = parseInt(numberPart);
+
+            // 检查数字范围
+            if (number < startNumber || number > endNumber) {
+                return {
+                    valid: false,
+                    message: `编号超出范围！有效范围：${prefix}${startNumber} - ${prefix}${endNumber}`
+                };
+            }
+
+            return {
+                valid: true,
+                normalizedNumber: normalizedInput,
+                numericValue: number,
+                eventIndex
+            };
+        }
+        // 获取编号前缀对应的活动索引
+        getEventIndexByPrefix(inputValue) {
+            for (let i = 0; i < this.NUMBER_CONFIG.events.length; i++) {
+                if (inputValue.startsWith(this.NUMBER_CONFIG.events[i].prefix)) {
+                    return i;
+                }
+            }
+            return -1;
+        }
         // 初始化系统数据
         initializeSystem() {
             // 修正角度映射，确保转盘与奖品对应正确
@@ -1076,6 +1205,27 @@
             document.getElementById('closeWinner').addEventListener('click', () => this.closeWinnerAnimation());
             document.getElementById('exportHistory').addEventListener('click', () => this.exportHistory()); // 导出
 
+              // 输入框格式化处理
+            const numberInput = document.getElementById('participantNumber');
+            
+            // 输入时自动格式化
+            numberInput.addEventListener('input', (e) => {
+                let value = e.target.value.toUpperCase().trim();
+                
+                // 限制输入长度
+                if (value.length > 5) {
+                    value = value.slice(0, 5);
+                    e.target.value = value;
+                }
+                
+                // // 如果用户输入数字，自动添加前缀
+                // const eventIndex = this.getEventIndexByPrefix(value);
+                // if (eventIndex !== -1 && !/^\d/.test(value)) {
+                //     const { prefix } = this.NUMBER_CONFIG.events[eventIndex];
+                //     value = prefix + value;
+                //     e.target.value = value;
+                // }
+            });
             // 回车键快速抽奖
             document.getElementById('participantNumber').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') this.startLottery();
@@ -1097,8 +1247,16 @@
         }
         // 准备导出数据
         prepareExportData() {
+            const currentEvent = this.NUMBER_CONFIG.events[this.currentEventIndex];
             return {
                 exportTime: new Date().toLocaleString('zh-CN'),
+                eventInfo: {
+                    name: currentEvent.name,
+                    range: `${currentEvent.prefix}${currentEvent.startNumber} - ${currentEvent.prefix}${currentEvent.endNumber}`,
+                    total: currentEvent.totalCount,
+                    used: this.usedNumbers.size,
+                    remaining: currentEvent.totalCount - this.usedNumbers.size
+                },
                 systemInfo: {
                     totalDrawn: this.usedNumbers.size,
                     remainingPrizes: this.getTotalPrizes(),
@@ -1290,15 +1448,25 @@
             }, { once: true });
         }
 
-        // 开始抽奖
+              // 开始抽奖
         async startLottery() {
             if (this.isDrawing) return;
 
             const numberInput = document.getElementById('participantNumber');
-            const participantNumber = parseInt(numberInput.value);
+            const inputValue = numberInput.value;
 
-            // 验证输入
-            if (!this.validateInput(participantNumber)) return;
+            // 验证编号格式和范围
+            const validation = this.validateNumberFormat(inputValue);
+            if (!validation.valid) {
+                this.showMessage(validation.message, 'error');
+                return;
+            }
+
+            this.participantNumber = validation.numericValue;
+            this.currentEventIndex = validation.eventIndex;
+
+            // 验证编号是否已使用和奖品是否还有
+            if (!this.validateLotteryConditions(this.participantNumber)) return;
 
             this.isDrawing = true;
             this.updateButtonState(true);
@@ -1314,13 +1482,13 @@
             const selectedPrize = await this.spinNBWheel();
 
             // 抽奖逻辑
-            const result = this.drawPrize(participantNumber, selectedPrize);
+            const result = this.drawPrize(this.participantNumber, selectedPrize);
             
             // 显示New Balance主题中奖动画
             await this.showNBWinnerAnimation(result);
 
             // 更新数据
-            this.updateGameData(participantNumber, result);
+            this.updateGameData(this.participantNumber, result);
 
             this.isDrawing = false;
             this.updateButtonState(false);
@@ -1328,14 +1496,9 @@
             numberInput.value = '';
         }
 
-        // 验证输入
-        validateInput(number) {
-            if (!number || number < 1 || number > 100000000000000000000000000000000000) {
-                this.showMessage('请输入有效的编号 (1-1000000000000000000000000000000000000000000000000000000)！', 'error');
-                return false;
-            }
-
-            if (this.usedNumbers.has(number)) {
+        // 验证抽奖条件
+        validateLotteryConditions(participantNumber) {
+            if (this.usedNumbers.has(participantNumber)) {
                 this.showMessage('该编号已经使用过了！', 'error');
                 return false;
             }
@@ -1347,6 +1510,7 @@
 
             return true;
         }
+
 
         // New Balance 主题转盘动画
         spinNBWheel() {
@@ -1450,16 +1614,52 @@
             this.createNBScreenShake();
         }
 
+// New Balance主题撒花效果 - 修正颜色
+createNBConfetti() {
+    const nbColors = ['#1e3c72', '#2a5298', '#ffffff', '#4474aa'];
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    const particleCount = 300; // 更多的粒子
+
+    for (let i = 0; i < particleCount; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * windowWidth + 'px';
+            confetti.style.top = Math.random() * windowHeight + 'px';
+            confetti.style.width = Math.random() * 10 + 5 + 'px'; // 更大的粒子
+            confetti.style.height = Math.random() * 10 + 5 + 'px';
+            confetti.style.backgroundColor = nbColors[Math.floor(Math.random() * nbColors.length)];
+            confetti.style.transform = `rotate(${Math.random() * 360}deg)`; // 随机旋转角度
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            confetti.style.animationDuration = (Math.random() * 2 + 3) + 's';
+            
+            document.body.appendChild(confetti);
+
+            setTimeout(() => {
+                confetti.remove();
+            }, 5000);
+        }, i * 50); // 延迟更短,更快地生成粒子
+    }
+}
+
         // New Balance主题撒花效果 - 修正颜色
         createNBConfetti() {
             const nbColors = ['#1e3c72', '#2a5298', '#ffffff', '#4474aa'];
-            
-            for (let i = 0; i < 150; i++) {
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            const particleCount = 300; // 更多的粒子
+
+            for (let i = 0; i < particleCount; i++) {
                 setTimeout(() => {
                     const confetti = document.createElement('div');
                     confetti.className = 'confetti';
-                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.left = Math.random() * windowWidth + 'px';
+                    confetti.style.top = Math.random() * windowHeight + 'px';
+                    confetti.style.width = Math.random() * 10 + 5 + 'px'; // 更大的粒子
+                    confetti.style.height = Math.random() * 10 + 5 + 'px';
                     confetti.style.backgroundColor = nbColors[Math.floor(Math.random() * nbColors.length)];
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`; // 随机旋转角度
                     confetti.style.animationDelay = Math.random() * 2 + 's';
                     confetti.style.animationDuration = (Math.random() * 2 + 3) + 's';
                     
@@ -1468,10 +1668,9 @@
                     setTimeout(() => {
                         confetti.remove();
                     }, 5000);
-                }, i * 15);
+                }, i * 50); // 延迟更短,更快地生成粒子
             }
         }
-
         // New Balance主题屏幕震动效果
         createNBScreenShake() {
             const container = document.querySelector('.container');
@@ -1488,10 +1687,10 @@
             winnerAnimation.style.display = 'none';
         }
 
-        // 更新游戏数据
+          // 更新游戏数据
         updateGameData(participantNumber, result) {
             // 标记编号已使用
-            this.usedNumbers.add(participantNumber);
+            this.usedNumbers.add(this.participantNumber);
 
             // 减少奖品数量
             if (result && this.prizes[result.prize]) {
@@ -1509,6 +1708,7 @@
             this.updateHistory();
         }
 
+
         // 更新显示信息
         updateDisplay() {
             document.getElementById('shoesCount').textContent = this.prizes.shoes.count;
@@ -1516,10 +1716,13 @@
             document.getElementById('clothesCount').textContent = this.prizes.clothes.count;
             document.getElementById('socksCount').textContent = this.prizes.socks.count;
 
-            document.getElementById('remainingNumbers').textContent = 100 - this.usedNumbers.size;
+            const currentEvent = this.NUMBER_CONFIG.events[this.currentEventIndex];
+            const remainingNumbers = currentEvent.totalCount - this.usedNumbers.size;
+            document.getElementById('remainingNumbers').textContent = remainingNumbers;
             document.getElementById('drawnCount').textContent = this.usedNumbers.size;
             document.getElementById('remainingPrizes').textContent = this.getTotalPrizes();
         }
+
 
         // 更新历史记录
         updateHistory() {
@@ -1600,7 +1803,6 @@
                 this.showMessage('New Balance抽奖系统重置成功！', 'info');
             }
         }
-
         // 切换音效
         toggleAudio() {
             this.audioEnabled = !this.audioEnabled;
