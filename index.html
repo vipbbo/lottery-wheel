@@ -247,6 +247,7 @@
         }
 
         .btn-secondary {
+            display: none;
             background: linear-gradient(45deg, #333, #555);
             color: white;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
@@ -1029,9 +1030,9 @@
                 <button class="btn btn-primary" id="startLottery">
                     🎲 开始抽奖
                 </button>
-                <!-- <button class="btn btn-secondary" id="resetSystem">
+                <button class="btn btn-secondary" id="resetSystem">
                     🔄 重置系统
-                </button> -->
+                </button>
             </div>
         </div>
         <div class="main-content">
@@ -1084,6 +1085,10 @@
                         <div class="prize-item">
                             <span>👟 NB 经典跑鞋</span>
                             <span id="shoesCount">20</span>
+                        </div>
+                        <div class="prize-item">
+                            <span>🧢 NB 运动帽</span>
+                            <span id="hatsCount">20</span>
                         </div>
                         <div class="prize-item">
                             <span>🎒 NB 运动背包</span>
@@ -1198,7 +1203,7 @@
             const rangeInfo = document.getElementById('numberRangeInfo');
             rangeInfo.textContent = `有效编号范围：${currentEvent.prefix}${currentEvent.startNumber} - ${currentEvent.prefix}${currentEvent.endNumber} (共 ${currentEvent.totalCount} 个编号)`;
         }
-// 验证编号格式和范围
+        // 验证编号格式和范围
         validateNumberFormat(inputValue) {
             if (!inputValue) {
                 return { valid: false, message: '请输入编号！' };
@@ -1206,7 +1211,6 @@
 
             // 转换为大写并去除空格
             const normalizedInput = inputValue.toString().toUpperCase().trim();
-
             // 检查编号类型
             const eventIndex = this.getEventIndexByPrefix(normalizedInput);
             if (eventIndex === -1) {
@@ -1260,12 +1264,12 @@
         initializeSystem() {
             // 修正角度映射，确保转盘与奖品对应正确
             this.prizes = {
-                shoes: { name: '👟 NB 经典跑鞋', count: 20, emoji: '👟', angle: 0 , centerAngle: 45, startAngle: 0, endAngle: 90},      // 对应第1个扇形
-                bags: { name: '🎒 NB 运动背包', count: 20, emoji: '🎒', angle: 90, centerAngle: 135, startAngle: 90, endAngle: 180  },     // 对应第2个扇形
-                clothes: { name: '👕 NB 运动T恤', count: 30, emoji: '👕', angle: 180 , centerAngle: 225, startAngle: 180, endAngle: 270  },  // 对应第3个扇形
-                socks: { name: '🧦 NB 运动袜', count: 30, emoji: '🧦', angle: 270, centerAngle: 315 , startAngle: 270, endAngle: 360 }     // 对应第4个扇形
+                shoes: { name: '👟 NB 经典跑鞋', count: 20, emoji: '👟', angle: 0, centerAngle: 36, startAngle: 0, endAngle: 72},      // 第1个扇形
+                hats: { name: '🧢 NB 运动帽', count: 20, emoji: '🧢', angle: 72, centerAngle: 108, startAngle: 72, endAngle: 144},     // 第2个扇形（新增）
+                bags: { name: '🎒 NB 运动背包', count: 20, emoji: '🎒', angle: 144, centerAngle: 180, startAngle: 144, endAngle: 216},  // 第3个扇形
+                clothes: { name: '👕 NB 运动T恤', count: 30, emoji: '👕', angle: 216, centerAngle: 252, startAngle: 216, endAngle: 288}, // 第4个扇形
+                socks: { name: '🧦 NB 运动袜', count: 30, emoji: '🧦', angle: 288, centerAngle: 324, startAngle: 288, endAngle: 360}    // 第5个扇形
             };
-
             this.usedNumbers = new Set();
             this.lotteryHistory = [];
             this.isDrawing = false;
@@ -1288,7 +1292,6 @@
             // 输入时自动格式化
             numberInput.addEventListener('input', (e) => {
                 let value = e.target.value.toUpperCase().trim();
-                
                 // 限制输入长度
                 if (value.length > 5) {
                     value = value.slice(0, 5);
@@ -1339,6 +1342,7 @@
                     remainingPrizes: this.getTotalPrizes(),
                     prizePool: {
                         shoes: this.prizes.shoes.count,
+                        hats: this.prizes.hats.count,
                         bags: this.prizes.bags.count,
                         clothes: this.prizes.clothes.count,
                         socks: this.prizes.socks.count
@@ -1449,6 +1453,7 @@
             
             txtContent += '当前奖品池状态:\n';
             txtContent += `👟 NB 经典跑鞋: ${this.currentExportData.systemInfo.prizePool.shoes}\n`;
+            txtContent += `👟 NB 运动帽: ${this.currentExportData.systemInfo.prizePool.hats}\n`;
             txtContent += `🎒 NB 运动背包: ${this.currentExportData.systemInfo.prizePool.bags}\n`;
             txtContent += `👕 NB 运动T恤: ${this.currentExportData.systemInfo.prizePool.clothes}\n`;
             txtContent += `🧦 NB 运动袜: ${this.currentExportData.systemInfo.prizePool.socks}\n\n`;
@@ -1525,7 +1530,7 @@
             }, { once: true });
         }
 
-              // 开始抽奖
+        // 开始抽奖
         async startLottery() {
             if (this.isDrawing) return;
 
@@ -1540,10 +1545,11 @@
             }
 
             this.participantNumber = validation.numericValue;
+            this.normalizedInput = validation.normalizedNumber;
             this.currentEventIndex = validation.eventIndex;
 
             // 验证编号是否已使用和奖品是否还有
-            if (!this.validateLotteryConditions(this.participantNumber)) return;
+            if (!this.validateLotteryConditions(this.normalizedInput)) return;
 
             this.isDrawing = true;
             this.updateButtonState(true);
@@ -1559,13 +1565,13 @@
             const selectedPrize = await this.spinNBWheel();
 
             // 抽奖逻辑
-            const result = this.drawPrize(this.participantNumber, selectedPrize);
+            const result = this.drawPrize(this.normalizedInput, selectedPrize);
             
             // 显示New Balance主题中奖动画
             await this.showNBWinnerAnimation(result);
 
             // 更新数据
-            this.updateGameData(this.participantNumber, result);
+            this.updateGameData(this.normalizedInput, result);
 
             this.isDrawing = false;
             this.updateButtonState(false);
@@ -1651,7 +1657,7 @@
         getAvailablePrizes() {
             const available = [];
             // 确保按照正确的顺序处理奖品
-            const prizeKeys = ['shoes', 'bags', 'clothes', 'socks'];
+            const prizeKeys = ['shoes', 'hats', 'bags', 'clothes', 'socks'];
             
             prizeKeys.forEach(key => {
                 const prize = this.prizes[key];
@@ -1765,9 +1771,9 @@ createNBConfetti() {
         }
 
           // 更新游戏数据
-        updateGameData(participantNumber, result) {
+        updateGameData(normalizedInput, result) {
             // 标记编号已使用
-            this.usedNumbers.add(this.participantNumber);
+            this.usedNumbers.add(this.normalizedInput);
 
             // 减少奖品数量
             if (result && this.prizes[result.prize]) {
@@ -1789,6 +1795,7 @@ createNBConfetti() {
         // 更新显示信息
         updateDisplay() {
             document.getElementById('shoesCount').textContent = this.prizes.shoes.count;
+            document.getElementById('hatsCount').textContent = this.prizes.hats.count;
             document.getElementById('bagsCount').textContent = this.prizes.bags.count;
             document.getElementById('clothesCount').textContent = this.prizes.clothes.count;
             document.getElementById('socksCount').textContent = this.prizes.socks.count;
