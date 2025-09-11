@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Balance 主题抽奖转盘</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .lottery-area {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .wheel-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 30px;
+        }
+
+        /* New Balance 主题转盘 - 从-90度开始让第一个扇形在顶部 */
+        .lottery-wheel {
+            width: 420px;
+            height: 420px;
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 
+                0 15px 35px rgba(0,0,0,0.4),
+                inset 0 5px 15px rgba(255,255,255,0.1),
+                0 0 20px rgba(30, 60, 114, 0.3);
+            transition: transform 4s cubic-bezier(0.23, 1, 0.32, 1);
+            overflow: hidden;
+            border: 5px solid rgba(255, 255, 255, 0.8);
+            /* 调整 conic-gradient 从-90度开始，让第一个扇形在顶部 */
+            background: conic-gradient(
+                from -90deg,
+                #1e3c72 0deg 72deg,
+                #000000 72deg 144deg,
+                #c71717 144deg 216deg,
+                #4474aa 216deg 288deg,
+                #8b4513 288deg 360deg
+            );
+        }
+
+        /* 扇形分割线 - 对应扇形边界 */
+        .sector-line {
+            position: absolute;
+            width: 50%;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.8);
+            top: 50%;
+            left: 50%;
+            transform-origin: left center;
+            z-index: 5;
+        }
+
+        /* 分割线位置 - 从-90度开始，每72度一条线 */
+        .sector-line:nth-child(1) { transform: rotate(-180deg) translateY(-1px); }
+        .sector-line:nth-child(2) { transform: rotate(-108deg) translateY(-1px); }
+        .sector-line:nth-child(3) { transform: rotate(-36deg) translateY(-1px); }
+        .sector-line:nth-child(4) { transform: rotate(36deg) translateY(-1px); }
+        .sector-line:nth-child(5) { transform: rotate(108deg) translateY(-1px); }
+
+        /* 奖品内容区域 */
+        .prize-content {
+            position: absolute;
+            width: 420px;
+            height: 420px;
+            top: 0;
+            left: 0;
+            border-radius: 50%;
+        }
+
+        .prize-sector {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 10;
+        }
+
+        /* 奖品位置 - 重新定位到每个扇形的中心 */
+        /* 第1个奖品 - NB 经典跑鞋 (顶部扇形，中心在-54度) */
+        .prize-sector:nth-child(1) {
+            top: 15%;
+            left: 20%;
+            transform: translateX(-50%) rotate(-54deg);
+        }
+
+        /* 第2个奖品 - NB 运动袜 (右上扇形，中心在18度) */
+        .prize-sector:nth-child(2) {
+            top: 5%;
+            left: 50%;
+            transform: rotate(18deg);
+        }
+
+        /* 第3个奖品 - NB 运动T恤 (右下扇形，中心在90度) */
+        .prize-sector:nth-child(3) {
+            top: 50%;
+            right: 5%;
+            transform: translateY(-50%) rotate(90deg);
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        /* 第4个奖品 - NB 运动背包 (左下扇形，中心在162度) */
+        .prize-sector:nth-child(4) {
+            top: 75%;
+            left: 50%;
+            transform: rotate(162deg);
+        }
+
+        /* 第5个奖品 - NB 运动帽 (左上扇形，中心在234度) */
+        .prize-sector:nth-child(5) {
+            top: 60%;
+            left: 5%;
+            transform: rotate(234deg);
+        }
+
+        .prize-icon {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+            animation: nbIconBounce 1.5s ease-in-out infinite;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
+        }
+
+        .prize-text {
+            font-size: 1rem;
+            animation: nbTextGlow 2s ease-in-out infinite;
+            white-space: nowrap;
+        }
+
+        @keyframes nbIconBounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        @keyframes nbTextGlow {
+            0%, 100% { 
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 15px rgba(30,60,114,0.5); 
+            }
+            50% { 
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 25px rgba(30,60,114,0.8), 0 0 35px rgba(255,255,255,0.3); 
+            }
+        }
+
+        /* New Balance 中心标志 */
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            box-shadow: 
+                0 10px 25px rgba(0,0,0,0.4),
+                inset 0 3px 8px rgba(255,255,255,0.3),
+                0 0 30px rgba(30, 60, 114, 0.6);
+            z-index: 20;
+            animation: nbCenterPulse 2s ease-in-out infinite;
+            border: 4px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .nb-center-logo {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .nb-center-text {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        @keyframes nbCenterPulse {
+            0%, 100% { 
+                transform: translate(-50%, -50%) scale(1); 
+                box-shadow: 
+                    0 10px 25px rgba(0,0,0,0.4),
+                    inset 0 3px 8px rgba(255,255,255,0.3),
+                    0 0 30px rgba(30, 60, 114, 0.6);
+            }
+            50% { 
+                transform: translate(-50%, -50%) scale(1.1); 
+                box-shadow: 
+                    0 15px 35px rgba(0,0,0,0.6),
+                    inset 0 3px 8px rgba(255,255,255,0.4),
+                    0 0 40px rgba(30, 60, 114, 0.8);
+            }
+        }
+
+        /* New Balance 主题指针 */
+        .wheel-pointer {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 25px solid transparent;
+            border-right: 25px solid transparent;
+            border-bottom: 70px solid #1e3c72;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
+            z-index: 15;
+            animation: nbPointerGlow 2s ease-in-out infinite;
+        }
+
+        .wheel-pointer::after {
+            content: '';
+            position: absolute;
+            top: 55px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 15px;
+            height: 15px;
+            background: #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.9);
+        }
+
+        @keyframes nbPointerGlow {
+            0%, 100% { 
+                filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5)) drop-shadow(0 0 25px rgba(30, 60, 114, 0.6)); 
+            }
+            50% { 
+                filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5)) drop-shadow(0 0 35px rgba(30, 60, 114, 0.9)); 
+            }
+        }
+
+        /* 抽奖按钮 */
+        .lottery-btn {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(30, 60, 114, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .lottery-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(30, 60, 114, 0.6);
+        }
+
+        .lottery-btn:active {
+            transform: translateY(0);
+        }
+
+        /* 结果显示 */
+        .result-display {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            color: white;
+            font-size: 1.1rem;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spinning {
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="lottery-area">
+        <!-- <h1 style="color: white; margin-bottom: 30px; font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">New Balance 幸运转盘</h1> -->
+        
+        <!-- New Balance 主题抽奖区域 -->
+        <div class="wheel-container">
+            <div class="wheel-pointer"></div>
+            <div class="lottery-wheel" id="lotteryWheel">
+                <!-- 扇形分割线 -->
+                <div class="sector-line"></div>
+                <div class="sector-line"></div>
+                <div class="sector-line"></div>
+                <div class="sector-line"></div>
+                <div class="sector-line"></div>
+                
+                <!-- 奖品内容 -->
+                <div class="prize-content">
+                    <div class="prize-sector">
+                        <div class="prize-icon">👟</div>
+                        <div class="prize-text">NB 经典跑鞋</div>
+                    </div>
+                    <div class="prize-sector">
+                        <div class="prize-icon">🧦</div>
+                        <div class="prize-text">NB 运动袜</div>
+                    </div>
+                    <div class="prize-sector">
+                        <div class="prize-icon">👕</div>
+                        <div class="prize-text">NB 运动T恤</div>
+                    </div>
+                    <div class="prize-sector">
+                        <div class="prize-icon">🎒</div>
+                        <div class="prize-text">NB 运动背包</div>
+                    </div>
+                    <div class="prize-sector">
+                        <div class="prize-icon">🧢</div>
+                        <div class="prize-text">NB 运动帽</div>
+                    </div>
+                </div>
+                
+                <div class="wheel-center">
+                    <div class="nb-center-logo">NB</div>
+                    <div class="nb-center-text">Lucky</div>
+                </div>
+            </div>
+        </div>
+
+        <button class="lottery-btn" onclick="startLottery()">开始抽奖</button>
+        <div class="result-display" id="result">点击按钮开始抽奖！</div>
+    </div>
+
+    <script>
+        const wheel = document.getElementById('lotteryWheel');
+        const resultDisplay = document.getElementById('result');
+        const lotteryBtn = document.querySelector('.lottery-btn');
+        
+        const prizes = [
+            'NB 经典跑鞋',    // 顶部扇形
+            'NB 运动袜',      // 右上扇形
+            'NB 运动T恤',     // 右下扇形
+            'NB 运动背包',    // 左下扇形
+            'NB 运动帽'       // 左上扇形
+        ];
+
+        let isSpinning = false;
+        let currentRotation = 0;
+
+        function startLottery() {
+            if (isSpinning) return;
+            
+            isSpinning = true;
+            lotteryBtn.classList.add('spinning');
+            resultDisplay.textContent = '抽奖中...';
+            
+            // 随机选择奖品 (0-4)
+            const randomIndex = Math.floor(Math.random() * 5);
+            
+            // 计算目标角度 - 考虑到渐变从-90度开始
+            const sectorCenter = randomIndex * 72 - 54; // 每个扇形的中心角度
+            const randomOffset = Math.random() * 40 - 20; // 随机偏移±20度
+            const targetAngle = -sectorCenter + randomOffset; // 转动到指针位置
+            
+            // 添加多圈旋转 (5-8圈)
+            const extraRotations = (Math.floor(Math.random() * 4) + 5) * 360;
+            const finalRotation = currentRotation + extraRotations + targetAngle;
+            
+            // 应用旋转
+            wheel.style.transform = `rotate(${finalRotation}deg)`;
+            currentRotation = finalRotation % 360;
+            
+            // 4秒后显示结果
+            setTimeout(() => {
+                isSpinning = false;
+                lotteryBtn.classList.remove('spinning');
+                resultDisplay.innerHTML = `
+                    <div style="text-align: center;">
+                        <div style="font-size: 1.5rem; margin-bottom: 10px;">🎉 恭喜获得 🎉</div>
+                        <div style="font-size: 1.8rem; font-weight: bold; color: #FFD700;">${prizes[randomIndex]}</div>
+                    </div>
+                `;
+            }, 4000);
+        }
+
+        // 键盘事件
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'Space') {
+                event.preventDefault();
+                startLottery();
+            }
+        });
+    </script>
+</body>
+</html>
