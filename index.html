@@ -1022,7 +1022,7 @@
         <div class="control-panel">
              <!-- 编号范围显示 -->
             <div class="number-range-info" id="numberRangeInfo">
-                有效编号范围：A1001 - A1650 (共 650 个编号)
+                有效编号范围：A1001 - A1650 (共 651 个编号)
             </div>
             <div class="input-group">
                 <input type="text" class="input-field" id="participantNumber" 
@@ -1050,24 +1050,24 @@
                     <!-- 奖品内容 -->
                     <div class="prize-content">
                         <div class="prize-sector">
-                            <div class="prize-icon">👟</div>
-                            <div class="prize-text">NB 经典跑鞋</div>
+                            <div class="prize-icon">🌼</div>
+                            <div class="prize-text">NB 配饰</div>
+                        </div>
+                        <div class="prize-sector">
+                            <div class="prize-icon">💴</div>
+                            <div class="prize-text">NB 现金券50元</div>
+                        </div>
+                        <div class="prize-sector">
+                            <div class="prize-icon">💵</div>
+                            <div class="prize-text">NB 现金券100元NB</div>
                         </div>
                         <div class="prize-sector">
                             <div class="prize-icon">🧦</div>
                             <div class="prize-text">NB 运动袜</div>
                         </div>
                         <div class="prize-sector">
-                            <div class="prize-icon">👕</div>
-                            <div class="prize-text">NB 运动T恤</div>
-                        </div>
-                        <div class="prize-sector">
-                            <div class="prize-icon">🎒</div>
-                            <div class="prize-text">NB 运动背包</div>
-                        </div>
-                        <div class="prize-sector">
-                            <div class="prize-icon">🧢</div>
-                            <div class="prize-text">NB 运动帽</div>
+                            <div class="prize-icon">💪</div>
+                            <div class="prize-text">NB 护臂</div>
                         </div>
                     </div>
                     
@@ -1083,24 +1083,24 @@
                 <div class="prize-pool">
                         <h3>🎁 New Balance 奖品池</h3>
                         <div class="prize-item">
-                            <span>👟 NB 经典跑鞋</span>
-                            <span id="shoesCount">20</span>
+                            <span>🌼 NB 配饰</span>
+                            <span id="shoesCount">45</span>
                         </div>
                         <div class="prize-item">
-                            <span>🧢 NB 运动帽</span>
-                            <span id="hatsCount">20</span>
-                        </div>
-                        <div class="prize-item">
-                            <span>🎒 NB 运动背包</span>
-                            <span id="bagsCount">20</span>
-                        </div>
-                        <div class="prize-item">
-                            <span>👕 NB 运动T恤</span>
-                            <span id="clothesCount">30</span>
+                            <span>💪 NB 护臂</span>
+                            <span id="hatsCount">90</span>
                         </div>
                         <div class="prize-item">
                             <span>🧦 NB 运动袜</span>
-                            <span id="socksCount">30</span>
+                            <span id="bagsCount">135</span>
+                        </div>
+                        <div class="prize-item">
+                            <span>💵 NB 现金券100元</span>
+                            <span id="clothesCount">180</span>
+                        </div>
+                        <div class="prize-item">
+                            <span>💴 NB 现金券50元</span>
+                            <span id="socksCount">450</span>
                         </div>
                 </div>
 
@@ -1160,6 +1160,37 @@
     </audio>
 
 <script>
+
+    let hasUserInteraction = false;
+
+    // 标记用户交互
+    function markUserInteraction() {
+        hasUserInteraction = true;
+    }
+
+    // 监听多种用户交互
+    ['click', 'keydown', 'touchstart', 'mousemove'].forEach(event => {
+        document.addEventListener(event, markUserInteraction, { once: true });
+    });
+
+    // 页面卸载前提醒
+    window.addEventListener('beforeunload', function(e) {
+        if (hasUserInteraction) {
+            // 设置返回值（必需）
+            const message = '确定要离开此页面吗？';
+            e.returnValue = message;
+            return message;
+        }
+    });
+
+    // 额外的 pagehide 事件（移动端更可靠）
+    window.addEventListener('pagehide', function(e) {
+        if (hasUserInteraction && !e.persisted) {
+            // 在这里可以保存数据到 localStorage
+            console.log('页面正在卸载');
+        }
+    });
+
     // New Balance 主题抽奖系统核心类
     class NBLotterySystem {
         constructor() {
@@ -1199,9 +1230,18 @@
         }
         // 更新编号范围显示
         updateNumberRangeDisplay() {
-            const currentEvent = this.NUMBER_CONFIG.events[this.currentEventIndex];
+            //const currentEvent = this.NUMBER_CONFIG.events[this.currentEventIndex];
             const rangeInfo = document.getElementById('numberRangeInfo');
-            rangeInfo.textContent = `有效编号范围：${currentEvent.prefix}${currentEvent.startNumber} - ${currentEvent.prefix}${currentEvent.endNumber} (共 ${currentEvent.totalCount} 个编号)`;
+             // 显示所有活动的编号范围（单行格式）
+            const allRanges = this.NUMBER_CONFIG.events.map(event => 
+                `${event.name}: ${event.prefix}${event.startNumber}-${event.prefix}${event.endNumber}`
+            ).join(' | ');
+            
+             // 计算总编号数量
+            const totalNumbers = this.NUMBER_CONFIG.events.reduce((sum, event) => sum + event.totalCount, 0);
+            rangeInfo.textContent = `有效编号范围：${allRanges} (共 ${totalNumbers} 个编号)`;
+            // rangeInfo.textContent = `有效编号范围：${currentEvent.prefix}${currentEvent.startNumber} - ${currentEvent.prefix}${currentEvent.endNumber} (共 ${currentEvent.totalCount} 个编号)`;
+            
         }
         // 验证编号格式和范围
         validateNumberFormat(inputValue) {
@@ -1264,11 +1304,11 @@
         initializeSystem() {
             // 修正角度映射，确保转盘与奖品对应正确
             this.prizes = {
-                shoes: { name: '👟 NB 经典跑鞋', count: 20, emoji: '👟', angle: 0, centerAngle: 36, startAngle: 0, endAngle: 72},      // 第1个扇形
-                hats: { name: '🧢 NB 运动帽', count: 20, emoji: '🧢', angle: 72, centerAngle: 108, startAngle: 72, endAngle: 144},     // 第2个扇形（新增）
-                bags: { name: '🎒 NB 运动背包', count: 20, emoji: '🎒', angle: 144, centerAngle: 180, startAngle: 144, endAngle: 216},  // 第3个扇形
-                clothes: { name: '👕 NB 运动T恤', count: 30, emoji: '👕', angle: 216, centerAngle: 252, startAngle: 216, endAngle: 288}, // 第4个扇形
-                socks: { name: '🧦 NB 运动袜', count: 30, emoji: '🧦', angle: 288, centerAngle: 324, startAngle: 288, endAngle: 360}    // 第5个扇形
+                shoes: { name: '🌼 NB 配饰', count: 45, emoji: '🌼', angle: 0, centerAngle: 36, startAngle: 0, endAngle: 72},      // 第1个扇形
+                hats: { name: '💪 NB 护臂', count: 90, emoji: '💪', angle: 72, centerAngle: 108, startAngle: 72, endAngle: 144},     // 第2个扇形（新增）
+                bags: { name: '🧦 NB 运动袜', count: 135, emoji: '🧦', angle: 144, centerAngle: 180, startAngle: 144, endAngle: 216},  // 第3个扇形
+                clothes: { name: '💵 NB 现金券100元', count: 180, emoji: '💵', angle: 216, centerAngle: 252, startAngle: 216, endAngle: 288}, // 第4个扇形
+                socks: { name: '💴 NB 现金券50元', count: 450, emoji: '💴', angle: 288, centerAngle: 324, startAngle: 288, endAngle: 360}    // 第5个扇形
             };
             this.usedNumbers = new Set();
             this.lotteryHistory = [];
@@ -1452,11 +1492,11 @@
             txtContent += `剩余奖品总数: ${this.currentExportData.systemInfo.remainingPrizes}\n\n`;
             
             txtContent += '当前奖品池状态:\n';
-            txtContent += `👟 NB 经典跑鞋: ${this.currentExportData.systemInfo.prizePool.shoes}\n`;
-            txtContent += `👟 NB 运动帽: ${this.currentExportData.systemInfo.prizePool.hats}\n`;
-            txtContent += `🎒 NB 运动背包: ${this.currentExportData.systemInfo.prizePool.bags}\n`;
-            txtContent += `👕 NB 运动T恤: ${this.currentExportData.systemInfo.prizePool.clothes}\n`;
-            txtContent += `🧦 NB 运动袜: ${this.currentExportData.systemInfo.prizePool.socks}\n\n`;
+            txtContent += `🌼 NB 配饰: ${this.currentExportData.systemInfo.prizePool.shoes}\n`;
+            txtContent += `💪 NB 护臂: ${this.currentExportData.systemInfo.prizePool.hats}\n`;
+            txtContent += `🧦 NB 运动袜: ${this.currentExportData.systemInfo.prizePool.bags}\n`;
+            txtContent += `💵 NB 现金券100元: ${this.currentExportData.systemInfo.prizePool.clothes}\n`;
+            txtContent += `💴 NB 现金券50元: ${this.currentExportData.systemInfo.prizePool.socks}\n\n`;
             
             txtContent += '========================================\n';
             txtContent += '           抽奖历史记录\n';
@@ -1801,8 +1841,9 @@ createNBConfetti() {
             document.getElementById('socksCount').textContent = this.prizes.socks.count;
 
             const currentEvent = this.NUMBER_CONFIG.events[this.currentEventIndex];
-            const remainingNumbers = currentEvent.totalCount - this.usedNumbers.size;
-            document.getElementById('remainingNumbers').textContent = remainingNumbers;
+            const totalNumbers = this.NUMBER_CONFIG.events.reduce((sum, event) => sum + event.totalCount, 0);
+            //const remainingNumbers = currentEvent.totalCount - this.usedNumbers.size;
+            document.getElementById('remainingNumbers').textContent = totalNumbers;
             document.getElementById('drawnCount').textContent = this.usedNumbers.size;
             document.getElementById('remainingPrizes').textContent = this.getTotalPrizes();
         }
