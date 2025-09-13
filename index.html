@@ -1241,11 +1241,11 @@
         <div class="control-panel">
              <!-- 编号范围显示 -->
             <div class="number-range-info" id="numberRangeInfo">
-                有效编号范围：A1001 - A1650 (共 651 个编号)
+                有效编号范围：C1001 - C1900 (共 900 个编号)
             </div>
             <div class="input-group">
                 <input type="text" class="input-field" id="participantNumber" 
-                       placeholder="输入编号 (例如: A1001)" maxlength="5">
+                       placeholder="输入编号 (例如: C1001)" maxlength="5">
                 <button class="btn btn-primary" id="startLottery">
                     🎲 开始抽奖
                 </button>
@@ -1536,26 +1536,12 @@
         initializeNumberConfig() {
             this.NUMBER_CONFIG = {
                 events: [
-                    { 
-                        name: '女子半程', 
-                        prefix: 'A', 
-                        startNumber: 1001, 
-                        endNumber: 1650, 
-                        totalCount: 650
-                    },
-                    {
-                        name: '男子半程',
-                        prefix: 'B',
-                        startNumber: 2001,
-                        endNumber: 2650,
-                        totalCount: 650
-                    },
                     {
                         name: '欢乐跑',
                         prefix: 'C',
                         startNumber: 1001,
-                        endNumber: 1800,
-                        totalCount: 800
+                        endNumber: 1900,
+                        totalCount: 900
                     }
                 ]
             };
