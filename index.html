@@ -1755,7 +1755,7 @@
                             <h3>📋 已使用编号管理</h3>
                             <div class="used-numbers-stats">
                                 <span class="used-count" id="usedCount">已使用: 0</span>
-                                <span class="remaining-count" id="remainingCount">可用: 5000</span>
+                                <span class="remaining-count" id="remainingCount">可用: 900</span>
                             </div>
                         </div>
                         
@@ -2332,7 +2332,7 @@
 
         // 获取总可用编号数量
         getTotalAvailableCount() {
-            if (!this.prizes) return 5000; // 默认值
+            if (!this.prizes) return 900; // 默认值
         debugger
             return Object.values(this.prizes).reduce((total, prize) => {
                 return total + prize.count;
