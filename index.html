@@ -2333,7 +2333,6 @@
         // 获取总可用编号数量
         getTotalAvailableCount() {
             if (!this.prizes) return 900; // 默认值
-        debugger
             return Object.values(this.prizes).reduce((total, prize) => {
                 return total + prize.count;
             }, 0);
