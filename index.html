@@ -1526,6 +1526,95 @@
                 opacity: 0;
             }
         }
+        /* excel导入 */
+                .excel-import-area {
+            margin-top: 15px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .upload-zone {
+            border: 2px dashed #1e3c72;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(30, 60, 114, 0.05);
+        }
+
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: #27ae60;
+            background: rgba(39, 174, 96, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            font-size: 1rem;
+            color: #1e3c72;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .upload-hint {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .excel-preview {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+        }
+
+        .preview-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #1e3c72;
+        }
+
+        .preview-content {
+            max-height: 150px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+        }
+
+        .column-select {
+            margin-bottom: 15px;
+        }
+
+        .column-select label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #1e3c72;
+        }
+
+        .column-select select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .excel-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
     </style>
 </head>
 <body>
@@ -1748,6 +1837,34 @@
                             </div>
                             <input type="number" class="config-input" id="configSocks" value="450" min="0" max="1000">
                         </div>
+                        <div class="config-item">
+                            <div class="config-label">
+                                <span class="prize-icon">📁</span>
+                                <span>从 Excel 导入</span>
+                            </div>
+                            <div class="excel-import-area">
+                                <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" style="display: none;">
+                                <div class="upload-zone" id="excelUploadZone">
+                                    <div class="upload-icon">📁</div>
+                                    <div class="upload-text">点击选择 Excel/CSV 文件或将文件拖拽到此处</div>
+                                    <div class="upload-hint">支持 .xlsx, .xls, .csv 格式</div>
+                                </div>
+                                <div class="excel-preview" id="excelPreview" style="display: none;">
+                                    <div class="preview-header">文件预览：<span id="previewFileName"></span></div>
+                                    <div class="preview-content" id="previewContent"></div>
+                                    <div class="column-select">
+                                        <label>选择奖品所在列：</label>
+                                        <select id="columnSelect">
+                                            <option value="">请选择列</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="excel-actions">
+                                    <button class="btn-confirm" id="confirmExcelImport" disabled>确认导入</button>
+                                    <button class="btn-cancel" id="cancelExcelImport">取消</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <!-- 已使用编号管理部分 -->
                     <div class="used-numbers-section">
@@ -1825,7 +1942,7 @@
     <audio id="winSound">
         <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmsbBjmU2fDJdSYELIXP7tiGMggZaLvt559NDAhOqeHwt2McBjiQ1+/Qfy4GL3TA7NuQOwkZaLvt559NDAhOqeHwt2UfBzyN1/LVeSQCMYPM8dyGMgUWZLXn66hVFApGn+DyvmsbBjiS2e/JdSsFLIHO8tiGMggZaLvt559NEAxQp+PwtmMcBjmQ1+/QfywGL3TA7NuQOwkZaLvt559NEAxQp+PwtmMcBjiU2fDJdSUFLIHO8tiGMggZaLvt559NEAxQp+HwtmUdBjOR1/LTeSUEK4DN8N+QQQoTXrTp66hVFAlFn+H0v2wdBj2S2fDNeSMCOIPM8dqGMwUWZLXn66hVFApGn+DyvmsbBjiS2e/JdSsFLIHO8tiGMggZaLvt559NEAxQp+PwtmMcBjiQ1+/QfywGL3TA7NuQOwkZaLvt559NEAxQp+PwtmMcBjiU2fDJdSUFLIHO8tiGMggZaLvt559NEAxQp+HwtmUdBjOR1/LTeSUEK4DN8N+QQQoTXrTp66hVFAlFn+H0v2wdBj2S2fDNeSMCOIPM8dqGMwUWZLXn66hVFApGn+DyvmsbBjiS2e/JdSsFLIHO8tiGMggZaLvt555NDAhOqeHwt2EQA==" type="audio/wav">
     </audio>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 <script>
 
     let hasUserInteraction = false;
@@ -1861,7 +1978,7 @@
     // New Balance 主题抽奖系统核心类
     class NBLotterySystem {
         constructor() {
-
+            this.currentExcelData = null; // 存储当前Excel数据
             // 1. 首先初始化基础属性
             this.initializeBasicProperties();
             // 2. 定义配置
@@ -1869,7 +1986,7 @@
             // 3. 加载配置和初始化系统
             this.loadConfigFromStorage();
             //this.initializeSystem();
-
+            this.loadUsedNumbers(); // 添加这行来加载已使用的编号
             // 4. 绑定事件和初始化UI
             this.bindEvents();
             this.createParticles();
@@ -1962,7 +2079,319 @@
                 case 'configOverlay':
                     this.closeConfigDialog();
                     break;
+                case 'excelFileInput':
+                case 'excelUploadZone':
+                    this.handleExcelFileSelect();
+                    break;
+                case 'confirmExcelImport':
+                    this.confirmExcelImport();
+                    break;
+                case 'cancelExcelImport':
+                    this.hideExcelPreview();
+                    break;
             }
+        }
+        // 处理Excel文件选择
+        handleExcelFileSelect() {
+            const fileInput = document.getElementById('excelFileInput');
+            fileInput.click();
+        }
+
+        // 处理文件选择变化
+        handleFileChange(e) {
+            const file = e.target.files[0];
+            if (file) {
+                this.parseExcelFile(file);
+            }
+        }
+
+        // 解析Excel文件
+        parseExcelFile(file) {
+            const validTypes = [
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+                'application/vnd.ms-excel', // .xls
+                'text/csv' // .csv
+            ];
+
+            if (!validTypes.includes(file.type) && !file.name.match(/\.(xlsx|xls|csv)$/i)) {
+                this.showConfigMessage('请选择有效的 Excel 或 CSV 文件！', 'error');
+                return;
+            }
+
+            document.getElementById('previewFileName').textContent = file.name;
+
+            if (file.name.toLowerCase().endsWith('.csv')) {
+                this.parseCSV(file);
+            } else {
+                this.parseExcel(file);
+            }
+        }
+
+        // 解析CSV文件
+        parseCSV(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const csvData = this.parseCSVData(e.target.result); // 改名为 csvData
+                this.showExcelPreview(csvData);
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        // 解析Excel文件
+        parseExcel(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const excelData = this.parseExcelData(e.target.result); // 改名为 excelData
+                    this.showExcelPreview(excelData);
+                } catch (error) {
+                    console.error('Excel 文件解析错误:', error);
+                    this.showConfigMessage('Excel 文件解析失败，请检查文件格式！', 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // 解析CSV数据
+        parseCSVData(text) {
+            const lines = text.trim().split('\n');
+            const parsedData = []; // 改名为 parsedData
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line) {
+                    const columns = line.split(',').map(col => col.trim().replace(/^"|"$/g, ''));
+                    parsedData.push(columns);
+                }
+            }
+            return parsedData;
+        }
+
+        // 解析Excel数据
+        parseExcelData(arrayBuffer) { // 参数名改为 arrayBuffer
+            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+            const range = XLSX.utils.decode_range(worksheet['!ref']);
+            const sheetData = []; // 改名为 sheetData
+
+            for (let row = range.s.r; row <= range.e.r; row++) {
+                const rowData = [];
+                for (let col = range.s.c; col <= range.e.c; col++) {
+                    const cellAddress = XLSX.utils.encode_cell({ c: col, r: row });
+                    const cell = worksheet[cellAddress];
+                    rowData.push(cell ? (cell.v || '').toString().trim() : '');
+                }
+                sheetData.push(rowData);
+            }
+
+            return sheetData;
+        }
+
+        // 显示Excel预览
+        showExcelPreview(fileData) { // 参数名改为 fileData
+            if (!fileData || fileData.length === 0) {
+                this.showConfigMessage('文件中没有找到有效数据！', 'error');
+                return;
+            }
+
+            this.currentExcelData = fileData; // 存储当前数据供后续使用
+            document.getElementById('excelPreview').style.display = 'block';
+            this.generateColumnSelector(fileData[0]);
+            this.displayDataPreview(fileData);
+            
+            // 添加列选择器的事件监听
+            const columnSelect = document.getElementById('columnSelect');
+            columnSelect.addEventListener('change', () => {
+                this.updateExcelPreview();
+            });
+        }
+        // 生成列选择器
+        generateColumnSelector(headers) {
+            const selector = document.getElementById('columnSelect');
+            selector.innerHTML = '<option value="">请选择列</option>';
+
+            headers.forEach((header, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `列 ${index + 1}: ${header || '(空)'}`;
+                selector.appendChild(option);
+            });
+        }
+
+        // 显示数据预览
+        displayDataPreview(previewData) { // 参数名改为 previewData
+            const previewContent = document.getElementById('previewContent');
+            const maxRows = Math.min(5, previewData.length);
+
+            let preview = '数据预览（前 5 行）:\n';
+            for (let i = 0; i < maxRows; i++) {
+                preview += `第 ${i + 1} 行: ${previewData[i].join(' | ')}\n`;
+            }
+
+            if (previewData.length > 5) {
+                preview += `... 共 ${previewData.length} 行数据`;
+            }
+
+            previewContent.textContent = preview;
+        }
+        // 更新Excel预览
+        updateExcelPreview() {
+            const columnIndex = document.getElementById('columnSelect').value;
+            const confirmBtn = document.getElementById('confirmExcelImport');
+
+            if (columnIndex !== '' && this.currentExcelData) {
+                this.previewSelectedColumn(parseInt(columnIndex));
+                confirmBtn.disabled = false;
+            } else {
+                confirmBtn.disabled = true;
+            }
+        }
+
+        // 预览选中的列数据
+        previewSelectedColumn(columnIndex) {
+            const previewContent = document.getElementById('previewContent');
+
+            if (!this.currentExcelData || columnIndex < 0) return;
+
+            const columnData = [];
+            for (let i = 1; i < this.currentExcelData.length; i++) {
+                const cellValue = this.currentExcelData[i][columnIndex];
+                if (cellValue && cellValue.trim()) {
+                    columnData.push(cellValue.trim());
+                }
+            }
+
+            let preview = `选中列的数据预览（前 10 个）:\n`;
+            const maxShow = Math.min(10, columnData.length);
+
+            for (let i = 0; i < maxShow; i++) {
+                preview += `${i + 1}. ${columnData[i]}\n`;
+            }
+
+            if (columnData.length > 10) {
+                preview += `... 共找到 ${columnData.length} 个数据`;
+            }
+
+            previewContent.textContent = preview;
+        }
+
+        // 确认Excel导入
+        confirmExcelImport() {
+            const columnIndex = parseInt(document.getElementById('columnSelect').value);
+
+            if (!this.currentExcelData || columnIndex < 0) {
+                this.showConfigMessage('请先选择数据所在的列！', 'error');
+                return;
+            }
+
+            const importedData = []; // 改名为 importedData
+            for (let i = 1; i < this.currentExcelData.length; i++) {
+                const cellValue = this.currentExcelData[i][columnIndex];
+                if (cellValue && cellValue.trim()) {
+                    importedData.push(cellValue.trim());
+                }
+            }
+
+            if (importedData.length === 0) {
+                this.showConfigMessage('选中的列中没有找到有效的数据！', 'error');
+                return;
+            }
+
+            this.updateConfigFromExcel(importedData);
+            this.hideExcelPreview();
+        }
+
+
+        // // 从 Excel 导入的数据更新配置
+        // updateConfigFromExcel(importedItems) { // 参数名改为 importedItems
+        //     debugger
+        //     const configItems = ['shoes', 'hats', 'bags', 'clothes', 'socks'];
+
+        //     configItems.forEach((item, index) => {
+        //         const inputField = document.getElementById(`config${item.charAt(0).toUpperCase() + item.slice(1)}`);
+        //         if (inputField) {
+        //             inputField.value = importedItems[index] || '0';
+        //         }
+        //     });
+
+        //     this.showConfigMessage('✅ 配置已从 Excel 导入成功！', 'success');
+        // }
+        
+        // 从 Excel 导入编号数据
+        updateConfigFromExcel(importedItems) {
+            if (!importedItems || importedItems.length === 0) {
+                this.showConfigMessage('❌ 没有找到有效的编号数据！', 'error');
+                return;
+            }
+
+            let addedCount = 0;
+            let duplicateCount = 0;
+            let errorCount = 0;
+            importedItems.forEach(item => {
+                const number = item.toString().trim().toUpperCase();
+                
+                if (!number) return;
+                
+                // 验证编号格式
+                const validation = this.validateNumberFormat(number);
+                if (!validation.valid) {
+                    errorCount++;
+                    return;
+                }
+                
+                // 检查是否已存在
+                if (this.usedNumbers.has(validation.normalizedNumber)) {
+                    duplicateCount++;
+                    return;
+                }
+                
+                // 添加到已使用编号集合
+                this.usedNumbers.add(validation.normalizedNumber);
+                addedCount++;
+            });
+
+            // 更新显示
+            this.updateUsedNumbersDisplay();
+            this.updateDisplay();
+            this.saveUsedNumbers();
+
+            // 显示导入结果
+            let message = `✅ 成功导入 ${addedCount} 个编号`;
+            if (duplicateCount > 0) {
+                message += `，跳过 ${duplicateCount} 个重复编号`;
+            }
+            if (errorCount > 0) {
+                message += `，忽略 ${errorCount} 个格式错误编号`;
+            }
+
+            this.showConfigMessage(message, addedCount > 0 ? 'success' : 'warning');
+        }
+
+        // 保存已使用编号到localStorage
+        saveUsedNumbers() {
+            try {
+                const usedNumbersArray = Array.from(this.usedNumbers);
+                localStorage.setItem('nbLotteryUsedNumbers', JSON.stringify(usedNumbersArray));
+            } catch (e) {
+                console.error('保存已使用编号失败:', e);
+            }
+        }
+
+        // 从localStorage加载已使用编号
+        loadUsedNumbers() {
+            try {
+                const saved = localStorage.getItem('nbLotteryUsedNumbers');
+                if (saved) {
+                    const usedNumbersArray = JSON.parse(saved);
+                    this.usedNumbers = new Set(usedNumbersArray);
+                }
+            } catch (e) {
+                console.error('加载已使用编号失败:', e);
+                this.usedNumbers = new Set();
+            }
+        }
+        // 隐藏Excel预览区域
+        hideExcelPreview() {
+            document.getElementById('excelPreview').style.display = 'none';
         }
 
         // 从 localStorage 加载配置数据
@@ -2493,6 +2922,12 @@
             document.getElementById('saveConfig').addEventListener('click', () => this.saveConfigToSystem());
             document.getElementById('resetConfig').addEventListener('click', () => this.resetConfigToDefault());
 
+
+            document.getElementById('excelFileInput').addEventListener('change', this.handleFileChange.bind(this));
+            document.getElementById('excelUploadZone').addEventListener('click', this.handleExcelFileSelect.bind(this));
+            document.getElementById('confirmExcelImport').addEventListener('click', this.confirmExcelImport.bind(this));
+            document.getElementById('cancelExcelImport').addEventListener('click', this.hideExcelPreview.bind(this));
+           
             // 点击overlay关闭弹窗
             document.getElementById('configOverlay').addEventListener('click', (e) => {
                 if (e.target.id === 'configOverlay') {
